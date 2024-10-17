@@ -9,9 +9,9 @@ switch keyword
         axisAngle = zeros(size(dlcAnalysis, 1), 1);
         for frame = 1:size(dlcAnalysis, 1)
             % Wings_Thorax_Upper_X - Wings_Thorax_Lower_X
-            LongitudinalAxis_Width = (dlcAnalysis(frame, 13) - dlcAnalysis(frame, 16));
+            LongitudinalAxis_Width = (dlcAnalysis(frame, 14) - dlcAnalysis(frame, 17));
             % Wings_Thorax_Upper_Y - Wings_Thorax_Lower_Y
-            LongitudinalAxis_Height = (dlcAnalysis(frame, 14) - dlcAnalysis(frame, 17));
+            LongitudinalAxis_Height = (dlcAnalysis(frame, 15) - dlcAnalysis(frame, 18));
             %Calculates the absolute arctan and returns the answer in degrees
             axisAngle(frame) = atand(LongitudinalAxis_Width / LongitudinalAxis_Height);
         end
@@ -24,14 +24,14 @@ switch keyword
         for frame = 1:size(dlcAnalysis, 1)
             % SlopeWidth and SlopeHeight %
             % Wings_Distal_Right_X - Wings_Hinge_Right_X
-            WBA_SlopeWidth_Right = (dlcAnalysis(frame, 4) - dlcAnalysis(frame, 1));
+            WBA_SlopeWidth_Right = (dlcAnalysis(frame, 5) - dlcAnalysis(frame, 2));
             % Wings_Distal_Right_Y - Wings_Hinge_Right_Y
-            WBA_SlopeHeight_Right = (dlcAnalysis(frame, 5) - dlcAnalysis(frame, 2));
+            WBA_SlopeHeight_Right = (dlcAnalysis(frame, 6) - dlcAnalysis(frame, 3));
         
             % Wings_Distal_Left_X - Wings_Hinge_Left_X
-            WBA_SlopeWidth_Left = (dlcAnalysis(frame, 10) - dlcAnalysis(frame, 7));
+            WBA_SlopeWidth_Left = (dlcAnalysis(frame, 11) - dlcAnalysis(frame, 8));
             % Wings_Distal_Left_Y - Wings_Hinge_Left_Y
-            WBA_SlopeHeight_Left = (dlcAnalysis(frame, 9) - dlcAnalysis(frame, 8));
+            WBA_SlopeHeight_Left = (dlcAnalysis(frame, 10) - dlcAnalysis(frame, 9));
     
             % Calculate Wing Beat Amplitudes
             % calculates the arctan and returns the answer in degrees
@@ -57,17 +57,11 @@ switch keyword
         hindVectors = zeros(size(dlcAnalysis, 1), 2, 4);
         axisAngle = optArg;
         for frame = 1:size(dlcAnalysis, 1)
-            rightProximal = [dlcAnalysis(frame, 55) dlcAnalysis(frame, 56)];
-            rightKnee = [dlcAnalysis(frame, 58) dlcAnalysis(frame, 59)];
-            rightDistal = [dlcAnalysis(frame, 61) dlcAnalysis(frame, 62)];
-            rightProximalKneeLength = norm(rightProximal - rightKnee);
-            rightKneeDistalLength = norm(rightKnee - rightDistal);
-
-            leftProximal = [dlcAnalysis(frame, 67) dlcAnalysis(frame, 68)];
-            leftKnee = [dlcAnalysis(frame, 70) dlcAnalysis(frame, 71)];
-            leftDistal = [dlcAnalysis(frame, 73) dlcAnalysis(frame, 74)];
-            leftProximalKneeLength = norm(leftProximal - leftKnee);
-            leftKneeDistalLength = norm(leftKnee - leftDistal);
+            rightProximalKneeLength
+            rightKneeDistalLength
+            
+            leftProximalKneeLength
+            leftKneeDistalLength
         end
         calculations = hindVectors;
     case 'frontlegVectors'
@@ -80,22 +74,22 @@ end
 % 2) We do not need likelihood as an input
 %
 % Thorax starting points     :
-% - Longitudinal axis upper   : column 13
-% - Longitudinal axis lower   : column 16
+% - Longitudinal axis upper   : column 14
+% - Longitudinal axis lower   : column 17
 % Wing starting points       :
-% - Right hinge               : Column 1
-% - Right wing                : Column 4
-% - Left hinge                : Column 7
-% - Left wing                 : Column 10
+% - Right hinge               : Column 2
+% - Right wing                : Column 5
+% - Left hinge                : Column 8
+% - Left wing                 : Column 11
 % Hind legs starting points  :
-% - Hindlegs_Proximal_Right   : Column 55
-% - Hindlegs_Knee_Right       : Column 58
-% - Hindlegs_Distal_Right     : Column 61
-% - Hindlegs_Proximal_Left    : Column 67
-% - Hindlegs_Knee_Left        : Column 70
-% - Hindlegs_Distal_Left      : Column 73
+% - Hindlegs_Proximal_Right   : Column 56
+% - Hindlegs_Knee_Right       : Column 59
+% - Hindlegs_Distal_Right     : Column 62
+% - Hindlegs_Proximal_Left    : Column 68
+% - Hindlegs_Knee_Left        : Column 71
+% - Hindlegs_Distal_Left      : Column 74
 % Front legs starting points :
-% - Frontlegs_Hinge_Right     : Column 43
-% - Frontlegs_Distal_Right    : Column 46
-% - Frontlegs_Hinge_Left      : Column 49
-% - Frontlegs_Distal_Left     : Column 52
+% - Frontlegs_Hinge_Right     : Column 44
+% - Frontlegs_Distal_Right    : Column 47
+% - Frontlegs_Hinge_Left      : Column 50
+% - Frontlegs_Distal_Left     : Column 53
