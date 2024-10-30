@@ -57,6 +57,7 @@ function plotBehaviourLabels()
             generateBehaviourVid(behaviourAnalysis, uniqueBehaviours(behaviour), dlcClean, outputName, labelChoices, videoResolution)
         end
     end
+    disp("All done!")
 end
 
 % Generates the example videos for a particular behaviour

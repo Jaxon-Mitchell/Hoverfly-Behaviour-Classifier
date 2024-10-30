@@ -6,7 +6,7 @@
 function createVideos()
     % Array of all behaviours we expect to see, in ordered number
     behaviours = [
-        "Not_flying", "Flying_Straight", "Turning", "Ruddering", "Superman"];
+        "Not_flying", "Flying_Straight", "Turning", "Ruddering", "Superman", "Starfish"];
 
     % Framerate of the recording camera
     fps = 100;
@@ -41,6 +41,7 @@ function createVideos()
             generateBehaviourVid(behaviourAnalysis, currentBehaviour, behaviours, analysisVideo, outputPath, experimentName, fps)
         end
     end
+    disp("All done making videos!")
 end
 
 % Generates the example videos for a particular behaviour
@@ -48,6 +49,7 @@ function generateBehaviourVid(behaviourAnalysis, behaviour, behaviours, analysis
     inBlock = false;
     currentBlock = 1;
     analysisVideo = strrep(analysisVideo, ' ', '\ ');
+    experimentName = strrep(experimentName, ' ', '\ ');
     % This loop generates a videoBlock(n,2) matrix where n is the amount of
     % behavioural blocks found in the experiment and the 2 columns
     % represent system(command) the start frame and end frame of the block
@@ -99,7 +101,7 @@ function generateBehaviourVid(behaviourAnalysis, behaviour, behaviours, analysis
         fclose(fid);
         % Concatenate all the videos of a single experiment type using ffmpeg
         outputVideo = [outputPath '/' experimentName '_' convertStringsToChars(behaviours(behaviour)) '.mp4'];
-        system(['ffmpeg -f concat -safe 0 -i ''' outputPath '/videos.txt'' -c copy ''' outputVideo '''']);
+        system(['ffmpeg -f concat -safe 0 -i ''' outputPath '/videos.txt'' -c copy ' outputVideo]);
         system(['rm ''' outputPath '/videos.txt''']);
         % Clean up, and delete the temp files
         for block = 1:size(videoBlock, 1)

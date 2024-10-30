@@ -15,8 +15,6 @@ function analysisMatrix = classifyBehaviours(pathToDLCAnalysis, vidRes)
     % Get the analysis into a format more easy for Matlab to handle
     dlcClean = dlcAnalysis(4:end,2:end);
     dlcClean = cell2mat(dlcClean);
-
-
     
     % Initialise the analysis to contain the same amount of frames as the
     % experiment video. A behaviour of '0' means that there was
@@ -34,36 +32,39 @@ function analysisMatrix = classifyBehaviours(pathToDLCAnalysis, vidRes)
     hindCalcs = getCalculations(dlcClean, vidRes, 'hindlegVectors', axisAngle);
 
     % Get vectors and angle calculations for both front legs
-    %frontcalcs = getCalculations(dlcClean, vidRes, 'frontlegVectors', axisAngle);
+    frontCalcs = getCalculations(dlcClean, vidRes, 'frontlegVectors', axisAngle);
 
-    % Get vectors for both front legs
-    
-    % Go through each frame and determine behaviours
-    %frame = 0;
     currentBehaviour = 0;
+    count = 0;
+
+    % Make a boolean of which legs are tucked
+    rTuckHind = false;
+    lTuckHind = false;
+    rTuckFront = false;
+    lTuckFront = false;
     
     for frame = 1:size(analysisMatrix, 1)
-        % Make a boolean of which legs are tucked
-        rTuckHind = false;
-        lTuckHind = false;
-        rTuckFront = false;
-        lTuckFront = false;
-        if hindCalcs (frame, 1, 2) <= 25
+
+        if hindCalcs (frame, 1, 2) <= 20
             rTuckHind = true;
         end
-        if hindCalcs(frame, 2, 2) <= 25
+        if hindCalcs(frame, 2, 2) <= 20
             lTuckHind = true;
         end
-        if frontCalcs(frame, 2, 2) <= 10
+        if frontCalcs(frame, 1, 1) <= 7
             rTuckFront = true;
         end
-        if frontCalcs(frame, 2, 2) <= 10
+        if frontCalcs(frame, 2, 1) <= 7
             lTuckFront = true;
+        end
+
+        if currentBehaviour ~= 0
+            checkCurrentBehaviour(currentBehaviour, count, other)
         end
         % Check if participant is flying
         if WBA(frame, 1) < 60 && WBA(frame, 2) < 60
             analysisMatrix(frame, 2) = 1;
-            currentBehaviour = 6;
+            currentBehaviour = 1;
             % If not, continue
             continue
         end
@@ -71,7 +72,19 @@ function analysisMatrix = classifyBehaviours(pathToDLCAnalysis, vidRes)
         if ~rTuckHind && ~lTuckHind && ~rTuckFront && ~lTuckFront
             analysisMatrix(frame, 2) = 6;
             currentBehaviour = 6;
+            count = 0; % Give this a different name
             continue
+        elseif currentBehaviour == 6
+            % We want to double check before transitioning out of starfish
+            if all([~rTuckHind, ~lTuckHind]) && any([~rTuckFront, ~lTuckFront])
+                analysisMatrix(frame, 2) = 6;
+                count = 0;
+                continue
+            elseif count <= 3
+                analysisMatrix(frame, 2) = 6;
+                count = count + 1;
+                continue
+            end
         end
         % Are the wings turning?
         if abs(WBA(frame, 1) - WBA(frame, 2)) > 15
@@ -126,3 +139,12 @@ end
 % Frontlegs calculations guide:
 % [rightVectorLength, rightRelativeAngle; ...
 %  leftVectorLength,  leftRelativeAngle]
+
+function check()
+
+end
+
+
+
+
+
