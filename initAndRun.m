@@ -21,7 +21,7 @@ videoResolution = inputdlg({'Enter video width:', 'Enter video height:'}, ...
 % Loop over every analysis file in the folder
 for analysis = 1:length(analyses)
     % Print a status message so the user knows what's going on internally
-    message = sprintf('Analysing experiment %d out of %d\n',analysis, length(analyses));
+    message = sprintf('Analysing experiment %d out of %d\n', analysis, length(analyses));
     disp(message);
 
     % Returns matrix of all behaviours

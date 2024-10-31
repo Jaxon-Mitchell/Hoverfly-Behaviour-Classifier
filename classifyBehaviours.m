@@ -8,8 +8,6 @@ function analysisMatrix = classifyBehaviours(pathToDLCAnalysis, vidRes)
 % number in the same manner as DLC, and the second column contains numbers
 % corresponding to behaviours on that frame.
 
-    % Remove later, but this is to test the script and if it works
-    %pathToDLCAnalysis = '/mnt/f7f78664-d0bb-46b3-b287-f7b88456453e/savedData/Jaxon/testData/RE-Video_11-Jul-2023 11_44_30.csv';
     % Load the DLC analysis file to obtain x-y positions of all labels
     dlcAnalysis = readcell(pathToDLCAnalysis);
     % Get the analysis into a format more easy for Matlab to handle
@@ -36,16 +34,15 @@ function analysisMatrix = classifyBehaviours(pathToDLCAnalysis, vidRes)
 
     currentBehaviour = 0;
     count = 0;
-
-    % Make a boolean of which legs are tucked
-    tucked.rHind = false;
-    tucked.lHind = false;
-    tucked.rFront = false;
-    tucked.lFront = false;
     
     for frame = 1:size(analysisMatrix, 1)
 
-        if hindCalcs (frame, 1, 2) <= 20
+        % Make a boolean of which legs are tucked
+        tucked.rHind = false;
+        tucked.lHind = false;
+        tucked.rFront = false;
+        tucked.lFront = false;
+        if hindCalcs(frame, 1, 2) <= 20
             tucked.rHind = true;
         end
         if hindCalcs(frame, 2, 2) <= 20
@@ -61,6 +58,10 @@ function analysisMatrix = classifyBehaviours(pathToDLCAnalysis, vidRes)
         % This check is in place to deal with edge cases and prevent rapid
         % switching between behaviours
         if currentBehaviour ~= 0
+            % remove later, this is to set a stoppoint
+            if frame == 359
+                disp('Hello')
+            end
             [count, outcome] = checkCurrentBehaviour(currentBehaviour, count, tucked, WBA(frame, :), frontCalcs(frame, :, :), squeeze(hindCalcs(frame, :, :)));
             if outcome == 1
                 analysisMatrix(frame, 2) = currentBehaviour;
@@ -85,7 +86,7 @@ function analysisMatrix = classifyBehaviours(pathToDLCAnalysis, vidRes)
             continue
         end
         % Are the wings turning?
-        if abs(WBA(frame, 1) - WBA(frame, 2)) > 15
+        if abs(WBA(frame, 1) - WBA(frame, 2)) > 20
             % Are the legs ruddering?
             hingeKneeAngleDiff = abs(hindCalcs(frame, 1,3) - hindCalcs(frame, 2,3));
             leftRudderTest = hindCalcs(frame, 2,1) > 25 && hingeKneeAngleDiff > 15;
@@ -152,10 +153,10 @@ function [count, outcome] = checkCurrentBehaviour(currentBehaviour, count, tucke
                 count = count + 1;
             end
         case 2 % Flying Straight
-            if abs(WBA(1) - WBA(2)) < 15 && any([WBA(1) > 60, WBA(2) > 60])
-                count = 0;
-            elseif all([~tucked.rHind, ~tucked.lHind]) || any([tucked.rFront, tucked.lFront])
+            if all([~tucked.rHind, ~tucked.lHind]) || any([tucked.rFront, tucked.lFront])
                 count = 3;
+            elseif abs(WBA(1) - WBA(2)) < 15 && any([WBA(1) > 60, WBA(2) > 60])
+                count = 0;
             else
                 count = count + 1;
             end
@@ -166,6 +167,7 @@ function [count, outcome] = checkCurrentBehaviour(currentBehaviour, count, tucke
                 count = count + 1;
             end
         case 4 % Ruddering
+
             hingeKneeAngleDiff = abs(hindCalcs(1,3) - hindCalcs(2,3));
             leftRudderTest = hindCalcs(2,1) > 25 && hingeKneeAngleDiff > 15;
             rightRudderTest = hindCalcs(1,1) > 25 && hingeKneeAngleDiff > 15;
@@ -189,9 +191,16 @@ function [count, outcome] = checkCurrentBehaviour(currentBehaviour, count, tucke
             else
                 count = count + 1;
             end
+        case 7 % Turning Starfish
+            if all([~tucked.rFront, ~tucked.lFront])
+                count = 3;
+            elseif all([~tucked.rHind, ~tucked.lHind]) && xor(~tucked.rFront, ~tucked.lFront)
+                count = 0;
+            else
+                count = count + 1;
+            end
 
     end
-
     if count >= 2
         outcome = 0;
     end

@@ -96,8 +96,6 @@ switch keyword
             leftKneeDistalLength = norm(leftKneeDistalVector);
             leftKneeThoraxAngle = atand(leftProximalKneeVector(1) / leftProximalKneeVector(2));
             leftKneeThoraxAngle = leftKneeThoraxAngle - axisAngle(frame);
-            %leftInteriorkneeAngle = dot(leftProximalKneeVector, leftKneeDistalVector)/(leftProximalKneeLength*leftKneeDistalLength);
-            %leftInteriorkneeAngle = real(acosd(leftInteriorkneeAngle));
             leftInteriorkneeAngle = rad2deg(atan2(...
                leftProximalKneeVector(2)*leftKneeDistalVector(1) - leftProximalKneeVector(1)*leftKneeDistalVector(2), ...
                leftProximalKneeVector(1)*leftKneeDistalVector(1) + leftProximalKneeVector(2)*leftKneeDistalVector(2)));
