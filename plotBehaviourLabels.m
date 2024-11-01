@@ -106,6 +106,7 @@ function generateBehaviourVid(behaviourAnalysis, behaviour, dlcClean, outputName
             end
             xlim([0 str2double(videoResolution{1})])
             ylim([0 str2double(videoResolution{2})])
+            title(['Frame: ' num2str(frame)])
             hold off
             drawnow
             frameData{counter} = getframe(gcf) ; %#ok<AGROW> This needs to be improved later

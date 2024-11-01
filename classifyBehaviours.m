@@ -18,7 +18,7 @@ function analysisMatrix = classifyBehaviours(pathToDLCAnalysis, vidRes)
     % experiment video. A behaviour of '0' means that there was
     % no behaviour found for that frame.
     analysisMatrix = zeros(size(dlcAnalysis, 1) - 3, 2);
-    analysisMatrix(:,1) = 0:size(analysisMatrix, 1) - 1;
+    analysisMatrix(:,1) = 1:size(analysisMatrix, 1);
     
     % Get some important calculations first!!
     axisAngle = getCalculations(dlcClean, vidRes, 'axisAngle');
@@ -174,7 +174,7 @@ function [count, outcome] = checkCurrentBehaviour(currentBehaviour, count, tucke
             tuckTest = xor(tucked.rHind, tucked.lHind);
             if any([~tucked.rFront, ~tucked.lFront])
                 count = 3;
-            elseif leftRudderTest || rightRudderTest || tuckTest
+            elseif abs(WBA(1) - WBA(2)) > 15 && any([leftRudderTest, rightRudderTest, tuckTest])
                 count = 0;
             else
                 count = count + 1;
