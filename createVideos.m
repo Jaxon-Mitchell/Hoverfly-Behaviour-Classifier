@@ -6,7 +6,7 @@
 function createVideos()
     % Array of all behaviours we expect to see, in ordered number
     behaviours = [
-        "Not_flying", "Flying_Straight", "Turning", "Ruddering", "Superman", "Starfish"];
+        "Not_flying", "Flying_Straight", "Turning", "Ruddering", "Superman", "Starfish", "Turning_Starfish"];
 
     % Framerate of the recording camera
     fps = 100;

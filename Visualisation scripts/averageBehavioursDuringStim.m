@@ -2,8 +2,8 @@
 % displays for any given stimuli
 function averageBehavioursDuringStim()
     % Get user to select .csv containing VAME motif timeseries
-    inputFolder = uigetdir('Select your folder containing motif usage .csv''s');
-    
+    inputFolder = uigetdir('/mnt/f7f78664-d0bb-46b3-b287-f7b88456453e/savedData/', 'Select your folder containing motif usage .csv''s');
+
     % Define variables %
     % Stimuli to choose from, select any from:
     % ["Dorsal_Loom_Fast"     , "Dorsal_Loom_HalfFast", ...
@@ -11,48 +11,60 @@ function averageBehavioursDuringStim()
     %  "Ventral_Loom_Fast"    , "Ventral_Loom_HalfFast", ...
     %  "Ventral_Loom_HalfSlow", "Ventral_Loom_Slow", ...
     %  "Dorsal_Loom_control"  , "Ventral_Loom_control"];
+
+    stimuliSearch = ["Dorsal_Loom_Fast"     , "Dorsal_Loom_HalfFast", ...
+                     "Dorsal_Loom_Halfslow" , "Dorsal_Loom_Slow", ...
+                     "Ventral_Loom_Fast"    , "Ventral_Loom_HalfFast", ...
+                     "Ventral_Loom_HalfSlow", "Ventral_Loom_Slow", ...
+                     "Dorsal_Loom_control"  , "Ventral_Loom_control"];
     
-    stimuli = ["Dorsal_Loom_Fast"     , "Dorsal_Loom_HalfFast", ...
-               "Dorsal_Loom_Halfslow" , "Dorsal_Loom_Slow", ...
-               "Ventral_Loom_Fast"    , "Ventral_Loom_HalfFast", ...
-               "Ventral_Loom_HalfSlow", "Ventral_Loom_Slow", ...
-               "Dorsal_Loom_control"  , "Ventral_Loom_control"];
-    
+    stimuliNames = ["Dorsal Loom Fast"     , "Dorsal Loom HalfFast", ...
+                    "Dorsal Loom Halfslow" , "Dorsal Loom Slow", ...
+                    "Ventral Loom Fast"    , "Ventral Loom HalfFast", ...
+                    "Ventral Loom HalfSlow", "Ventral Loom Slow", ...
+                    "Dorsal Loom control"  , "Ventral Loom control"];
+
     % Define camera frame rate (FPS) and analysis time bucket (ms)
     frameRate = 100;
     timeBucket = 100;
     framesPerBucket = floor((timeBucket * 10^(-3)) / (1 / frameRate));
-    
+
     % Define longest experiment length
-    experimentMax = 5; % Seconds
-    
-    % This string should contain the expected file name format for motif usage
-    fileType = "40_hmm_label";
-    
+    experimentMax = 11; % Seconds
+
     % Get user defined community groupings 
-    community = returnCommunities();
-    
+    behaviours = [
+        "Not flying", "Flying Straight", "Turning", "Straight Ruddering", ...
+        "Turning Ruddering", "Superman", "Starfish", "Turning Starfish"];
+
     csvList = dir(fullfile(inputFolder, '*.csv'));
     csvList = {csvList.name};
-    
+
+    fileType = '_behaviourAnalysis';
     csvIndex = find(cell2mat(regexp(csvList, fileType)));
-    csvList = csvList(csvIndex); %#ok<FNDSB>
-    
-    for stimulus = 1:length(stimuli)
+    csvList = csvList(csvIndex);%#ok<FNDSB>
+
+    for stimulus = 1:length(stimuliNames)
         % Pre-calculate the rough size of the analysis file we need
-        behaviourAnalysis = zeros((experimentMax / (timeBucket * 10^(-3))),length(community));
+        behaviourAnalysis = zeros((experimentMax / (timeBucket * 10^(-3))),length(behaviours));
         % Get only the motif files relevant to our stimuli
-        stimuliFiles = find(cell2mat(regexp(csvList, stimuli(stimulus))));
+        experimentTest = regexp(csvList, stimuliSearch(stimulus));
+        for i = 1:length(experimentTest)
+            if isempty(experimentTest{i})
+                experimentTest{i} = 0;
+            end
+        end
+        stimuliFiles = find(cell2mat(experimentTest));
         % Loop over all experiments and extract community info 
         for file = 1:length(stimuliFiles)
             % Load the motif data
-            experiment = readmatrix([inputFolder, '/', csvList{file}]);
+            behaviouralTimeSeries = readmatrix([inputFolder, '/', csvList{stimuliFiles(file)}]);
             % Initialise the frame bucket system
             bucket = 1;
             bucketOffset = framesPerBucket * (bucket - 1);
-            while bucketOffset < (size(experiment, 1) - framesPerBucket)
+            while bucketOffset < (size(behaviouralTimeSeries, 1) - framesPerBucket)
                 % This variable accounts for different bucket indexing
-                behaviourAnalysis = bucketFilling(community, framesPerBucket, behaviourAnalysis, experiment, bucket, bucketOffset);
+                behaviourAnalysis = bucketFilling(framesPerBucket, behaviourAnalysis, behaviouralTimeSeries, bucket, bucketOffset);
                 bucket = bucket + 1;
                 bucketOffset = framesPerBucket * (bucket - 1);
             end
@@ -65,18 +77,17 @@ function averageBehavioursDuringStim()
         behaviourAnalysis = rmmissing(behaviourAnalysis);
         % Plot our average behaviour data here!
         figure
-        bar(behaviourAnalysis,'stacked', 'barwidth', 1)
+        bar(behaviourAnalysis, 'stacked', 'barwidth', 1)
+        ylim([0 1])
+        title(stimuliNames(stimulus))
+        legend(behaviours)
     end
 end
 
-function behaviourAnalysis = bucketFilling(community, framesPerBucket, behaviourAnalysis, experiment, bucket, bucketOffset)
+function behaviourAnalysis = bucketFilling(framesPerBucket, behaviourAnalysis, behaviouralTimeSeries, bucket, bucketOffset)
     for frame = 1:framesPerBucket
-        for group = 1:length(community)
-            if ismember(experiment((bucketOffset + frame), 2), community{group}.motifs)
-                behaviourAnalysis(bucket, group) = behaviourAnalysis(bucket, group) + 1;
-                break
-            end
-        end
+        currentBehaviour = behaviouralTimeSeries(bucketOffset + frame ,2);
+        behaviourAnalysis(bucket, currentBehaviour) = behaviourAnalysis(bucket, currentBehaviour) + 1;   
     end
 end
 

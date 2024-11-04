@@ -4,7 +4,7 @@ function plotBehaviourLabels()
 % Define variables %
     % Array of all behaviours we expect to see, in ordered number
     behaviours = [
-        "Not_flying", "Flying_Straight", "Turning", "Ruddering", "Superman"];
+        "Not flying", "Flying Straight", "Turning", "Straight Ruddering", "Turning Ruddering", "Superman", "Starfish", "Turning Starfish"];
     % = true if you want to ignore behaviour stuff
     useWholeVid = true;
     
@@ -49,7 +49,7 @@ function plotBehaviourLabels()
             % If we want a video without splitting up behaviours, call this
             % once and then continue
             outputName = [outputPath '/' experimentName '_labels.avi'];
-            generateBehaviourVid(behaviourAnalysis, useWholeVid, dlcClean, outputName, labelChoices, videoResolution)
+            generateBehaviourVid(behaviourAnalysis, useWholeVid, dlcClean, outputName, labelChoices, videoResolution, behaviours)
             continue
         end
         for behaviour = 1:length(uniqueBehaviours)
@@ -61,7 +61,7 @@ function plotBehaviourLabels()
 end
 
 % Generates the example videos for a particular behaviour
-function generateBehaviourVid(behaviourAnalysis, behaviour, dlcClean, outputName, labelChoices, videoResolution)
+function generateBehaviourVid(behaviourAnalysis, behaviour, dlcClean, outputName, labelChoices, videoResolution, behaviourList)
     figure;
     xlim([0 str2double(videoResolution{1})])
     ylim([0 str2double(videoResolution{2})])
@@ -76,6 +76,7 @@ function generateBehaviourVid(behaviourAnalysis, behaviour, dlcClean, outputName
     for frame = 1:size(dlcClean, 1)
         % Is this code terrible? Yes. Do I care? No
         if behaviourAnalysis(frame) == behaviour || behaviour == true
+            behaviourName = convertStringsToChars(behaviourList(behaviourAnalysis(frame)));
             hold on
             % Plot wing labels
             if labelChoices{1} == 'y'
@@ -106,7 +107,7 @@ function generateBehaviourVid(behaviourAnalysis, behaviour, dlcClean, outputName
             end
             xlim([0 str2double(videoResolution{1})])
             ylim([0 str2double(videoResolution{2})])
-            title(['Frame: ' num2str(frame)])
+            title(['Frame: ' num2str(frame) ', Behaviour: ' behaviourName])
             hold off
             drawnow
             frameData{counter} = getframe(gcf) ; %#ok<AGROW> This needs to be improved later

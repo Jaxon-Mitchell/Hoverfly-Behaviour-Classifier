@@ -1,15 +1,10 @@
 % This script is meant to develop a transition matrix between all motifs
-% found using VAME
+% found using my behavioural algorithm
 
 % We want to do this over multiple videos, so get user to select the folder
-% containing all VAME results, so the script can loop over each folder
+% containing all behaviour results, so the script can loop over each folder
 
-isLoaded = false;
-
-if isLoaded ~= true
-    % This is where I test using a single file!
-    [file, location] = uigetfile('*.csv');
-end
+inputFolder = uigetdir('/mnt/f7f78664-d0bb-46b3-b287-f7b88456453e/savedData/', 'Select your folder containing behavioural .csv''s');
 
 % Define frame rate
 frameRate = 100;

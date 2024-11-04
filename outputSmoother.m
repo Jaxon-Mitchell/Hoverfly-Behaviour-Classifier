@@ -24,10 +24,13 @@ for analysis = 1:length(analyses)
     while frame < length(behaviourMat)
         currentBehaviour = behaviourMat(frame);
         if currentBehaviour == 7
-            starfishTest = behaviourMat(frame:frame+3);
-            if any(starfishTest == 6)
+            starfishForwardTest = behaviourMat(frame:frame+3);
+            starfishBackwardTest = behaviourMat(frame-3:frame);
+            if any(starfishForwardTest == 6)
                 behaviourMat(frame:frame+3) = 6;
                 frame = frame + 2;
+            elseif any(starfishBackwardTest == 6)
+                behaviourMat(frame-3:frame) = 6;
             else
                 while currentBehaviour == 7
                     frame = frame + 1;
@@ -35,10 +38,9 @@ for analysis = 1:length(analyses)
                 end
                 frame = frame - 1;
             end
-        end
-        if currentBehaviour == 2
-            starfishTest = behaviourMat(frame:frame+3);
-            if any(starfishTest == 5)
+        elseif currentBehaviour == 2
+            supermanTest = behaviourMat(frame:frame+3);
+            if any(supermanTest == 5)
                 behaviourMat(frame:frame+3) = 5;
                 frame = frame + 2;
             else
@@ -48,7 +50,8 @@ for analysis = 1:length(analyses)
                 end
                 frame = frame - 1;
             end
-            
+        else
+
         end
         frame = frame + 1;
     end
