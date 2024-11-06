@@ -7,14 +7,14 @@ function plotBehaviourLabels()
         "Not flying", "Flying Straight", "Turning", "Straight Ruddering", "Turning Ruddering", "Superman", "Starfish", "Turning Starfish"];
     % = true if you want to ignore behaviour stuff
     useWholeVid = true;
-    
+
     filePath = uigetdir('/mnt/f7f78664-d0bb-46b3-b287-f7b88456453e/savedData/', 'Select folder containing all behaviour analysis AND videos');
     outputPath = uigetdir('/mnt/f7f78664-d0bb-46b3-b287-f7b88456453e/savedData/', 'Select folder to save your output videos to');
-    
+
     % Double check video resolution as it determines our figure window size
     videoResolution = inputdlg({'Enter video width:', 'Enter video height:'}, ...
         'Video Resolution', [1 45], {'320', '240'});
-    
+
     % What labels do we want to show for the animation?
     inputStr = {'Show wing labels? y/n', 'Show head labels? y/n', ...
         'Show frontleg labels? y/n', 'Show hindleg labels? y/n'};
@@ -22,11 +22,11 @@ function plotBehaviourLabels()
     boxSize = [1, 45; 1, 45; 1, 45; 1, 45];
     labelChoices = inputdlg(inputStr, ...
         'Chose calculations', boxSize, inputDef);
-    
+
     % Get all video DLC analysis names in an array
     analyses = dir([filePath '/*_behaviourAnalysis.csv']);
     analyses = {analyses(1:end).name};
-    
+
     % Loop through each experiment to grab out the relevant parts
     for analysis = 1:length(analyses)
         % Get the name of the current experiment
@@ -67,9 +67,9 @@ function generateBehaviourVid(behaviourAnalysis, behaviour, dlcClean, outputName
     ylim([0 str2double(videoResolution{2})])
 
     yMax = str2double(videoResolution{2});
-    
+
     counter = 1;
-    
+
     % This loop generates a videoBlock(n,2) matrix where n is the amount of
     % behavioural blocks found in the experiment and the 2 columns
     % represent the start frame and end frame of the block
@@ -84,6 +84,8 @@ function generateBehaviourVid(behaviourAnalysis, behaviour, dlcClean, outputName
                 plot(dlcClean(frame, 4) , yMax - dlcClean(frame, 5) , 'b.', 'MarkerSize', 40)
                 plot(dlcClean(frame, 7) , yMax - dlcClean(frame, 8) , 'c.', 'MarkerSize', 40)
                 plot(dlcClean(frame, 10), yMax - dlcClean(frame, 11), 'b.', 'MarkerSize', 40)
+                plot(dlcClean(frame, 13), yMax - dlcClean(frame, 14), 'g^', 'MarkerSize', 10)
+                plot(dlcClean(frame, 16), yMax - dlcClean(frame, 17), 'gv', 'MarkerSize', 10)
             end
             % Plot head labels
             if labelChoices{2} == 'y'

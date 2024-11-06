@@ -30,14 +30,28 @@ for analysis = 1:length(analyses)
     axisAngle = getCalculations(dlcClean, vidRes, 'axisAngle');
     WBA = getCalculations(dlcClean, vidRes, 'WBA', axisAngle);
     wbaDifference = abs(WBA(:, 1)  - WBA(:, 2));
+    % Get vectors and angle info for both hind legs
+    hindCalcs = getCalculations(dlcClean, vidRes, 'hindlegVectors', axisAngle);
+    % Uncomment this to plot WBA stuff
+    % if analysis == 1
+    %     wbaAll = wbaDifference;
+    % else
+    %     wbaAll = [wbaAll; wbaDifference]; %#ok<AGROW> I could, but I'm lazy and don't wanna see the yellow
+    % end
+    % Uncomment this to plot hind leg stuff
     if analysis == 1
-        wbaAll = wbaDifference;
+        calcsToPlot1 = hindCalcs(:, 1, 2);
+        calcsToPlot2 = hindCalcs(:, 2, 2);
     else
-        wbaAll = [wbaAll; wbaDifference]; %#ok<AGROW> I could, but I'm lazy and don't wanna see the yellow
+        calcsToPlot1 = [calcsToPlot1; hindCalcs(:, 1, 2)]; %#ok<AGROW> I could, but I'm lazy and don't wanna see the yellow
+        calcsToPlot2 = [calcsToPlot2; hindCalcs(:, 2, 2)]; %#ok<AGROW>
     end
 end
 
-edges = 0:5:60;
-h = histogram(wbaAll,edges);
+edges = 0:5:100;
+figure
+histogram(calcsToPlot1, edges);
+figure
+histogram(calcsToPlot2, edges);
 
 disp('Finished analysis!')

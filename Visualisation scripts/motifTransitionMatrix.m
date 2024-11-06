@@ -6,78 +6,83 @@
 
 inputFolder = uigetdir('/mnt/f7f78664-d0bb-46b3-b287-f7b88456453e/savedData/', 'Select your folder containing behavioural .csv''s');
 
+csvList = dir(fullfile(inputFolder, '*.csv'));
+csvList = {csvList.name};
+
+fileType = '_behaviourAnalysis';
+csvIndex = find(cell2mat(regexp(csvList, fileType)));
+csvList = csvList(csvIndex);
+totalExperiments = length(csvList);
+
 % Define frame rate
 frameRate = 100;
 
-% First, we load our data as an array
-motifData = readmatrix([location file]);
-% Select all rows after the first (which is empty)
-motifData = motifData(2:end, :);
-% In Vame, motifs are indexed from 0 onwards, whilst in Matlab, indexing
-% starts at one, add 1 to the motifs to make consistent with Matlab indexing
-motifData(:,2) = motifData(:, 2) + 1;
+% First, we load the first behavioural .csv to initialise files
+behaviourData = readmatrix([inputFolder '/' csvList{1}]);
 
-% Search through the whole array to find what the biggest motif number is,
-% noting that for n motifs they are indexed from 0 to n-1
-totalMotifs = 0;
-for i = 1:size(motifData, 1)
-    currentMotif = motifData(i,2);
-    if currentMotif > totalMotifs
-        totalMotifs = currentMotif;
-    end
-end
+% Get user defined community groupings 
+behaviours = [
+    "Not flying", "Flying Straight", "Turning", "Straight Ruddering", ...
+    "Turning Ruddering", "Superman", "Starfish", "Turning Starfish"];
+totalBehaviours = length(behaviours);
 
 % Then, we want to define a nxn array, where n represents the number of
-% motifs we have. The rows represent the motifs, and the columns represent
-% the motif that has been transitioned to afterwards
-transitionMatrix = zeros(totalMotifs);
+% behaviours we have. The rows represent the behaviours, and the columns 
+% represent the behaviour that has been transitioned to afterwards
+transitionMatrix = zeros(totalBehaviours);
 
 % Init all of our timing info arrays with a dummy time of 0 seconds
-for motif = 1:totalMotifs
-    motifTiming.("motif" + num2str(motif)) = 0;
+for behaviour = 1:totalBehaviours
+    behaviourTiming.("behaviour" + num2str(behaviour)) = 0;
 end
 
 % Init the first motif in the sequence
-currentMotif = motifData(1,2);
-motifStartFrame = 1;
+currentBehaviour = behaviourData(1,2);
+behaviourStartFrame = 1;
 
-% Enter a for loop across all the data to find transitions between motifs
-for frame = 1:size(motifData, 1)
-    motif = motifData(frame, 2);
-    % Check if the motif has changed from the current one we're in
-    if motif ~= currentMotif
-        % Mark down what frame we have changed at
-        motifEndFrame = frame;
-        % Determine, in seconds, how long the motif lasted for
-        motifTime = (motifEndFrame - motifStartFrame) / frameRate;
-        motifTiming.("motif" + num2str(currentMotif))(end+1) = motifTime;
-        % Add change onto the transition matrix
-        transitionMatrix(currentMotif, motif) = transitionMatrix(currentMotif, motif) + 1;
-        % Update what the current motif is
-        currentMotif = motif;
-        motifStartFrame = frame;
+for experiment = 1:totalExperiments
+    behaviourData = readmatrix([inputFolder '/' csvList{experiment}]);
+    % Init the first motif in the sequence
+    currentBehaviour = behaviourData(1,2);
+    behaviourStartFrame = 1;
+    % Enter a for loop across all the data to find transitions between motifs
+    for frame = 2:size(behaviourData, 1)
+        behaviour = behaviourData(frame, 2);
+        % Check if the motif has changed from the current one we're in
+        if behaviour ~= currentBehaviour
+            % Mark down what frame we have changed at
+            behaviourEndFrame = frame;
+            % Determine, in seconds, how long the motif lasted for
+            behaviourTime = (behaviourEndFrame - behaviourStartFrame) / frameRate;
+            behaviourTiming.("behaviour" + num2str(currentBehaviour))(end+1) = behaviourTime;
+            % Add change onto the transition matrix
+            transitionMatrix(currentBehaviour, behaviour) = transitionMatrix(currentBehaviour, behaviour) + 1;
+            % Update what the current motif is
+            currentBehaviour = behaviour;
+            behaviourStartFrame = frame;
+        end
     end
-end
-
-% Do timing calculations for the last motif of the experiment
-motifEndFrame = motifData(end, 1);
-motifTime = (motifEndFrame - motifStartFrame) / frameRate;
-motifTiming.("motif" + num2str(currentMotif))(end+1) = motifTime;
-
-% Remove the dummy time from all motif time arrays
-for motif = 1:totalMotifs
-    motifTiming.("motif" + num2str(motif)) = motifTiming.("motif" + num2str(motif))(2:end);
+    
+    % Do timing calculations for the last motif of the experiment
+    behaviourEndFrame = behaviourData(end, 1);
+    behaviourTime = (behaviourEndFrame - behaviourStartFrame) / frameRate;
+    behaviourTiming.("behaviour" + num2str(currentBehaviour))(end+1) = behaviourTime;
 end
 
 % Normalise the transition matrix relative to the amount of transitions
 % made for each motif
-transitionMatrixNormalised = zeros(totalMotifs);
-for motif = 1:totalMotifs
-    transitions = sum(transitionMatrix(motif,:));
-    transitionMatrixNormalised(motif, :) = transitionMatrix(motif, :) / transitions; 
+transitionMatrixNormalised = zeros(totalBehaviours);
+for behaviour = 1:totalBehaviours
+    transitions = sum(transitionMatrix(behaviour,:));
+    transitionMatrixNormalised(behaviour, :) = transitionMatrix(behaviour, :) / transitions; 
 end
 
-% Plot our brand new transition matrices onto some figures!
+% Remove the dummy time from all motif time arrays
+for behaviour = 1:totalBehaviours
+    behaviourTiming.("behaviour" + num2str(behaviour)) = behaviourTiming.("behaviour" + num2str(behaviour))(2:end);
+end
+
+% Plot our brand new transition matrices onto some figures`!
 figure
 transition = heatmap(transitionMatrix);
 figure
@@ -89,16 +94,22 @@ graphplot(mc,ColorEdges=true);
 
 % Plot the timing data onto some boxplots too! :D
 % Start by inititalising our timing data and grouping information
-xData = motifTiming.motif1';
-groupData = ones(size(motifTiming.motif1'));
+xData = behaviourTiming.behaviour1';
+groupData = ones(size(behaviourTiming.behaviour1'));
 % Then loop over all motifs and do the same (Note how we use a transposed
 % matrix to put it into a format that boxplot() doesn't complain about)
-for motif = 2:totalMotifs
-    xData = [xData; motifTiming.("motif" + num2str(motif))']; %#ok<AGROW> Supressing as it's too annoying to fix rn >:(
-    groupData = [groupData; motif.*ones(size(motifTiming.("motif" + num2str(motif))'))]; %#ok<AGROW>
+for behaviour = 2:totalBehaviours
+    xData = [xData; behaviourTiming.("behaviour" + num2str(behaviour))']; %#ok<AGROW> Supressing as it's too annoying to fix rn >:(
+    groupData = [groupData; behaviour.*ones(size(behaviourTiming.("behaviour" + num2str(behaviour))'))]; %#ok<AGROW>
 end
 
 figure
 boxplot(xData, groupData);
 ylim([0 (max(xData) + 1)]);
+
+for i = 1:totalBehaviours
+    figure
+    edges = 0:0.2:5;
+    h = histogram(behaviourTiming.("behaviour" + num2str(i)),edges);
+end
 

@@ -4,6 +4,11 @@
 % Start by getting the users folder for storing .csv's
 filePath = uigetdir('/mnt/f7f78664-d0bb-46b3-b287-f7b88456453e/savedData/', 'Select folder containing all DLC .csv''s');
 outputPath = uigetdir('/mnt/f7f78664-d0bb-46b3-b287-f7b88456453e/savedData/', 'Select folder to save your behaviour timeseries to');
+if any([filePath == 0, outputPath == 0])
+    disp("Cancelled by user")
+    return
+end
+
 % Get all video DLC analysis names in an array
 analyses = dir([filePath '/*.csv']);
 analyses = {analyses(1:end).name};

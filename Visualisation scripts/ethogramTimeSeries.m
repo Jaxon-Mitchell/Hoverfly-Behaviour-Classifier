@@ -1,6 +1,6 @@
 % This script shows (in 10 ms buckets) the average behaviour a hoverfly
 % displays for any given stimuli
-function averageBehavioursDuringStim()
+function ethogramTimeSeries()
     % Get user to select .csv containing VAME motif timeseries
     inputFolder = uigetdir('/mnt/f7f78664-d0bb-46b3-b287-f7b88456453e/savedData/', 'Select your folder containing motif usage .csv''s');
 
@@ -30,7 +30,7 @@ function averageBehavioursDuringStim()
     framesPerBucket = floor((timeBucket * 10^(-3)) / (1 / frameRate));
 
     % Define longest experiment length
-    experimentMax = 5; % Seconds
+    experimentMax = 11; % Seconds
 
     % Get user defined community groupings 
     behaviours = [
@@ -62,7 +62,7 @@ function averageBehavioursDuringStim()
             % Initialise the frame bucket system
             bucket = 1;
             bucketOffset = framesPerBucket * (bucket - 1);
-            while bucketOffset < ((floor(size(behaviouralTimeSeries, 1) / 10) * 10) - framesPerBucket) && bucket <= size(behaviourAnalysis, 1)
+            while bucketOffset < (size(behaviouralTimeSeries, 1) - framesPerBucket)
                 % This variable accounts for different bucket indexing
                 behaviourAnalysis = bucketFilling(framesPerBucket, behaviourAnalysis, behaviouralTimeSeries, bucket, bucketOffset);
                 bucket = bucket + 1;
@@ -77,10 +77,11 @@ function averageBehavioursDuringStim()
         behaviourAnalysis = rmmissing(behaviourAnalysis);
         % Plot our average behaviour data here!
         figure
-        bar(behaviourAnalysis, 'stacked', 'barwidth', 1)
-        ylim([0 1])
+        heatmap(1:size(behaviourAnalysis, 1), behaviours, behaviourAnalysis')
+        colormap(parula)
+        ax = gca;
+        ax.XDisplayLabels = nan(size(ax.XDisplayData));
         title(stimuliNames(stimulus))
-        legend(behaviours, 'Location', 'southwest')
     end
 end
 

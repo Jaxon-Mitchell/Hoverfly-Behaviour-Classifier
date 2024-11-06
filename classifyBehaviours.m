@@ -15,9 +15,9 @@ function analysisMatrix = classifyBehaviours(pathToDLCAnalysis, vidRes)
     dlcClean = cell2mat(dlcClean);
 
     % Initialise the analysis to contain the same amount of frames as the
-    % experiment video. A behaviour of '0' means that there was
+    % experiment video. A behaviour of '1' means that there was
     % no behaviour found for that frame.
-    analysisMatrix = zeros(size(dlcAnalysis, 1) - 3, 2);
+    analysisMatrix = ones(size(dlcAnalysis, 1) - 3, 2);
     analysisMatrix(:,1) = 1:size(analysisMatrix, 1);
 
     % Get some important calculations first!!
@@ -32,7 +32,7 @@ function analysisMatrix = classifyBehaviours(pathToDLCAnalysis, vidRes)
     % Get vectors and angle calculations for both front legs
     frontCalcs = getCalculations(dlcClean, vidRes, 'frontlegVectors', axisAngle);
 
-    currentBehaviour = 0;
+    currentBehaviour = 1;
     count = 0;
 
     for frame = 1:size(analysisMatrix, 1)
@@ -77,8 +77,8 @@ function analysisMatrix = classifyBehaviours(pathToDLCAnalysis, vidRes)
         end
         % Check if participant has all limbs out (Starfish) NEED TO REDEFINE THIS
         if ~tucked.rHind && ~tucked.lHind && ~tucked.rFront && ~tucked.lFront
-            analysisMatrix(frame, 2) = 8;
-            currentBehaviour = 8;
+            analysisMatrix(frame, 2) = 7;
+            currentBehaviour = 7;
             continue
         end
 
@@ -97,7 +97,7 @@ function analysisMatrix = classifyBehaviours(pathToDLCAnalysis, vidRes)
                 continue
             end
             % Test for turning ruddering behaviour
-            if leftRudderTest || rightRudderTest || tuckTest
+            if any([leftRudderTest, rightRudderTest, tuckTest]) && any([~tucked.rHind, ~tucked.lHind])
                 analysisMatrix(frame, 2) = 5;
                 currentBehaviour = 5;
                 continue 
@@ -107,35 +107,37 @@ function analysisMatrix = classifyBehaviours(pathToDLCAnalysis, vidRes)
             currentBehaviour = 3;
             continue
         end
-        % Check if participant is in superman pose
-        if ~tucked.rHind && ~tucked.lHind && tucked.rFront && tucked.lFront
-            analysisMatrix(frame, 2) = 6;
-            currentBehaviour = 6;
-            continue 
-        end
         % Test for straight ruddering behaviour
-        if leftRudderTest || rightRudderTest || tuckTest
+        if any([leftRudderTest, rightRudderTest, tuckTest]) && any([~tucked.rHind, ~tucked.lHind])
             analysisMatrix(frame, 2) = 4;
             currentBehaviour = 4;
             continue 
         end
+        % Check if participant is in superman pose
+        if ~tucked.rHind && ~tucked.lHind
+            analysisMatrix(frame, 2) = 6;
+            currentBehaviour = 6;
+            continue 
+        end
         % If participant is flying straight with no additional movement,
         % mark as such
-        analysisMatrix(frame, 2) = 2;
-        currentBehaviour = 2;
+        if tucked.rHind && tucked.lHind && tucked.rFront && tucked.lFront
+            analysisMatrix(frame, 2) = 2;
+            currentBehaviour = 2;
+        end
     end
 end
 
 % Behavioural guide:
-% 0 - Initialised value, should not be found in a final analysis
-% 1 - Not flying
-% 2 - Flying straight
-% 3 - Turning with no additional behaviour
-% 4 - Straight rudder
-% 5 - Turning rudder
-% 6 - Superman position
-% 7 - Starfish
-% 8 - Turning starfish
+% 1 - Initialised value, should not be found in a final analysis
+% 2 - Not flying
+% 3 - Flying straight
+% 4 - Turning with no additional behaviour
+% 5 - Straight rudder
+% 6 - Turning rudder
+% 7 - Superman position
+% 8 - Starfish
+% 9 - Turning starfish
 
 % Hindlegs calculations guide:
 % [rightProximalKneeLength, rightKneeDistalLength, rightKneeThoraxAngle, rightInteriorkneeAngle; ...
@@ -152,27 +154,29 @@ function [count, outcome] = checkCurrentBehaviour(currentBehaviour, count, tucke
     % move onto the next behaviour (= 0)
     outcome = 1;
     switch currentBehaviour
-        case 1 % Not flying
+        case 2 % Not flying
             if all([WBA(1) < 60, WBA(2) < 60])
                 count = 0;
             else
                 count = count + 1;
             end
-        case 2 % Flying Straight
-            if all([~tucked.rHind, ~tucked.lHind]) || any([tucked.rFront, tucked.lFront])
+        case 3 % Flying Straight
+            if any([~tucked.rHind, ~tucked.lHind, ~tucked.rFront, ~tucked.lFront]) || abs(WBA(1) - WBA(2)) > 30
                 count = 3;
             elseif abs(WBA(1) - WBA(2)) < 20 && any([WBA(1) > 60, WBA(2) > 60])
                 count = 0;
             else
                 count = count + 1;
             end
-        case 3 % Turning with no additional behaviour
-            if all([tucked.rHind, tucked.lHind, tucked.rFront, tucked.lFront]) && abs(WBA(1) - WBA(2)) > 20 && any([WBA(1) > 60, WBA(2) > 60])
+        case 4 % Turning with no additional behaviour
+            if any([~tucked.rHind, ~tucked.lHind, ~tucked.rFront, ~tucked.lFront]) || abs(WBA(1) - WBA(2)) < 10
+                count = 3;
+            elseif abs(WBA(1) - WBA(2)) > 20 && any([WBA(1) > 60, WBA(2) > 60])
                 count = 0;
             else
                 count = count + 1;
             end
-        case 4 % Straight ruddering
+        case 5 % Straight ruddering
             hingeKneeAngleDiff = abs(hindCalcs(1,3) - hindCalcs(2,3));
             leftRudderTest = hindCalcs(2,1) > 25 && hingeKneeAngleDiff > 15;
             rightRudderTest = hindCalcs(1,1) > 25 && hingeKneeAngleDiff > 15;
@@ -184,7 +188,7 @@ function [count, outcome] = checkCurrentBehaviour(currentBehaviour, count, tucke
             else
                 count = count + 1;
             end
-        case 5 % Turning ruddering
+        case 6 % Turning ruddering
             hingeKneeAngleDiff = abs(hindCalcs(1,3) - hindCalcs(2,3));
             leftRudderTest = hindCalcs(2,1) > 25 && hingeKneeAngleDiff > 15;
             rightRudderTest = hindCalcs(1,1) > 25 && hingeKneeAngleDiff > 15;
@@ -196,19 +200,21 @@ function [count, outcome] = checkCurrentBehaviour(currentBehaviour, count, tucke
             else
                 count = count + 1;
             end
-        case 6 % Superman position
-            if all([~tucked.rHind, ~tucked.lHind]) && all([tucked.rFront, tucked.lFront])
+        case 7 % Superman position
+            if any([~tucked.rFront, ~tucked.lFront])
+                count = 3;
+            elseif all([~tucked.rHind, ~tucked.lHind])
                 count = 0;
             else
                 count = count + 1;
             end
-        case 7 % Starfish
+        case 8 % Starfish
             if all([~tucked.rHind, ~tucked.lHind]) && any([~tucked.rFront, ~tucked.lFront])
                 count = 0;
             else
                 count = count + 1;
             end
-        case 8 % Turning Starfish
+        case 9 % Turning Starfish
             if all([~tucked.rFront, ~tucked.lFront])
                 count = 3;
             elseif all([~tucked.rHind, ~tucked.lHind]) && xor(~tucked.rFront, ~tucked.lFront)
@@ -218,7 +224,7 @@ function [count, outcome] = checkCurrentBehaviour(currentBehaviour, count, tucke
             end
 
     end
-    if count >= 2
+    if count > 2
         outcome = 0;
     end
 end
