@@ -70,15 +70,15 @@ function analysisMatrix = classifyBehaviours(pathToDLCAnalysis, vidRes)
         count = 0;
         % Check if participant is flying
         if WBA(frame, 1) < 60 && WBA(frame, 2) < 60
-            analysisMatrix(frame, 2) = 1;
-            currentBehaviour = 1;
+            analysisMatrix(frame, 2) = 2;
+            currentBehaviour = 2;
             % If not, continue
             continue
         end
         % Check if participant has all limbs out (Starfish) NEED TO REDEFINE THIS
         if ~tucked.rHind && ~tucked.lHind && ~tucked.rFront && ~tucked.lFront
-            analysisMatrix(frame, 2) = 7;
-            currentBehaviour = 7;
+            analysisMatrix(frame, 2) = 8;
+            currentBehaviour = 8;
             continue
         end
 
@@ -92,52 +92,59 @@ function analysisMatrix = classifyBehaviours(pathToDLCAnalysis, vidRes)
         if abs(WBA(frame, 1) - WBA(frame, 2)) > 20
             % Check if participant is doing a turning starfish
             if ~tucked.rHind && ~tucked.lHind && xor(~tucked.rFront, ~tucked.lFront)
-                analysisMatrix(frame, 2) = 8;
-                currentBehaviour = 8;
+                analysisMatrix(frame, 2) = 9;
+                currentBehaviour = 9;
                 continue
             end
             % Test for turning ruddering behaviour
             if any([leftRudderTest, rightRudderTest, tuckTest]) && any([~tucked.rHind, ~tucked.lHind])
-                analysisMatrix(frame, 2) = 5;
-                currentBehaviour = 5;
+                analysisMatrix(frame, 2) = 6;
+                currentBehaviour = 6;
                 continue 
             end
             % Otherwise, it is generic flying
-            analysisMatrix(frame, 2) = 3;
-            currentBehaviour = 3;
-            continue
+            if all([tucked.rHind, tucked.lHind, tucked.rFront, tucked.lFront])
+                analysisMatrix(frame, 2) = 4;
+                currentBehaviour = 4;
+                continue
+            end
         end
         % Test for straight ruddering behaviour
         if any([leftRudderTest, rightRudderTest, tuckTest]) && any([~tucked.rHind, ~tucked.lHind])
-            analysisMatrix(frame, 2) = 4;
-            currentBehaviour = 4;
+            analysisMatrix(frame, 2) = 5;
+            currentBehaviour = 5;
             continue 
         end
         % Check if participant is in superman pose
-        if ~tucked.rHind && ~tucked.lHind
-            analysisMatrix(frame, 2) = 6;
-            currentBehaviour = 6;
+        if all([~tucked.rHind, ~tucked.lHind, tucked.rFront, tucked.lFront])
+            analysisMatrix(frame, 2) = 7;
+            currentBehaviour = 7;
             continue 
         end
         % If participant is flying straight with no additional movement,
         % mark as such
-        if tucked.rHind && tucked.lHind && tucked.rFront && tucked.lFront
-            analysisMatrix(frame, 2) = 2;
-            currentBehaviour = 2;
+        if all([tucked.rHind, tucked.lHind, tucked.rFront, tucked.lFront])
+            analysisMatrix(frame, 2) = 3;
+            currentBehaviour = 3;
+        end
+        if all([tucked.rHind, tucked.lHind]) && any([~tucked.rFront, ~tucked.lFront])
+            analysisMatrix(frame, 2) = 10;
+            currentBehaviour = 10;
         end
     end
 end
 
 % Behavioural guide:
-% 1 - Initialised value, should not be found in a final analysis
-% 2 - Not flying
-% 3 - Flying straight
-% 4 - Turning with no additional behaviour
-% 5 - Straight rudder
-% 6 - Turning rudder
-% 7 - Superman position
-% 8 - Starfish
-% 9 - Turning starfish
+% 1  - Initialised value, should not be found in a final analysis
+% 2  - Not flying
+% 3  - Flying straight
+% 4  - Turning with no additional behaviour
+% 5  - Straight rudder
+% 6  - Turning rudder
+% 7  - Superman position
+% 8  - Starfish
+% 9  - Turning starfish
+% 10 - Front Kick
 
 % Hindlegs calculations guide:
 % [rightProximalKneeLength, rightKneeDistalLength, rightKneeThoraxAngle, rightInteriorkneeAngle; ...
@@ -154,6 +161,10 @@ function [count, outcome] = checkCurrentBehaviour(currentBehaviour, count, tucke
     % move onto the next behaviour (= 0)
     outcome = 1;
     switch currentBehaviour
+        case 1 % Undefined behaviour
+            % Always double check what behaviour we have next, rather than
+            % leave undefined
+            count = 3;
         case 2 % Not flying
             if all([WBA(1) < 60, WBA(2) < 60])
                 count = 0;
@@ -222,7 +233,12 @@ function [count, outcome] = checkCurrentBehaviour(currentBehaviour, count, tucke
             else
                 count = count + 1;
             end
-
+        case 10 % Front Kick
+            if any([~tucked.rHind, ~tucked.lHind]) || abs(WBA(1) - WBA(2)) > 20
+                count = 3;
+            else
+                count = count + 1;
+            end
     end
     if count > 2
         outcome = 0;

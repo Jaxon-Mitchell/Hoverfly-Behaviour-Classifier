@@ -35,7 +35,7 @@ function averageBehavioursDuringStim()
     % Get user defined community groupings 
     behaviours = [
         "Not flying", "Flying Straight", "Turning", "Straight Ruddering", ...
-        "Turning Ruddering", "Superman", "Starfish", "Turning Starfish"];
+        "Turning Ruddering", "Superman", "Starfish", "Turning Starfish", "Front Kick"];
 
     csvList = dir(fullfile(inputFolder, '*.csv'));
     csvList = {csvList.name};
@@ -59,6 +59,8 @@ function averageBehavioursDuringStim()
         for file = 1:length(stimuliFiles)
             % Load the motif data
             behaviouralTimeSeries = readmatrix([inputFolder, '/', csvList{stimuliFiles(file)}]);
+            % shift behaviours to remove unidentified ones
+            behaviouralTimeSeries = behaviouralTimeSeries - 1;
             % Initialise the frame bucket system
             bucket = 1;
             bucketOffset = framesPerBucket * (bucket - 1);

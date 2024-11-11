@@ -19,11 +19,13 @@ frameRate = 100;
 
 % First, we load the first behavioural .csv to initialise files
 behaviourData = readmatrix([inputFolder '/' csvList{1}]);
+% shift behaviours to remove unidentified ones
+behaviourData = behaviourData - 1;
 
 % Get user defined community groupings 
 behaviours = [
     "Not flying", "Flying Straight", "Turning", "Straight Ruddering", ...
-    "Turning Ruddering", "Superman", "Starfish", "Turning Starfish"];
+    "Turning Ruddering", "Superman", "Starfish", "Turning Starfish", "Front Kick"];
 totalBehaviours = length(behaviours);
 
 % Then, we want to define a nxn array, where n represents the number of
@@ -42,6 +44,8 @@ behaviourStartFrame = 1;
 
 for experiment = 1:totalExperiments
     behaviourData = readmatrix([inputFolder '/' csvList{experiment}]);
+    % shift behaviours to remove unidentified ones
+    behaviourData = behaviourData - 1;
     % Init the first motif in the sequence
     currentBehaviour = behaviourData(1,2);
     behaviourStartFrame = 1;
