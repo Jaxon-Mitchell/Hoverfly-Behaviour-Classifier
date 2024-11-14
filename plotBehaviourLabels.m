@@ -4,8 +4,8 @@ function plotBehaviourLabels()
 % Define variables %
     % Array of all behaviours we expect to see, in ordered number
     behaviours = [
-        "Undefined", "Not flying", "Flying Straight", "Turning", "Straight Ruddering", ...
-        "Turning Ruddering", "Superman", "Starfish", "Turning Starfish", "Front Kick"];
+        "Undefined", "Flying Straight", "Turning", "Straight Ruddering", ...
+        "Turning Ruddering", "Starfish", "Turning Starfish"];
     % = true if you want to ignore behaviour stuff
     useWholeVid = true;
 
@@ -29,7 +29,7 @@ function plotBehaviourLabels()
     analyses = {analyses(1:end).name};
 
     % Loop through each experiment to grab out the relevant parts
-    for analysis = 4:length(analyses)
+    for analysis = 1:length(analyses)
         % Get the name of the current experiment
         experimentName = strsplit(analyses{analysis}, '_behaviourAnalysis.csv');
         experimentName = experimentName{1};

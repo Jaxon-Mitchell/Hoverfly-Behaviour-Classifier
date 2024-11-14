@@ -37,9 +37,9 @@ for analysis = 1:length(analyses)
     fileName = [fileName{1} '_behaviourAnalysis.csv'];
     writematrix(behaviours, [outputPath '/' fileName])
     % Inform the user if there's an unidentified behaviour in the file
-    if any(behaviours(:, 2) == 1)
-        disp(['Video ' fileName ' has some unidentified behaviours!'])
-    end
+    % if any(behaviours(:, 2) == 1)
+    %     disp(['Video ' fileName ' has some unidentified behaviours!'])
+    % end
     % Clear analysis video message for a clean command window 
     for character = 1 : length(message) + 1
         fprintf('\b')

@@ -24,8 +24,8 @@ behaviourData = behaviourData - 1;
 
 % Get user defined community groupings 
 behaviours = [
-        "Undefined" "Flying Straight" "Turning" "Straight Ruddering" ...
-        "Turning Ruddering" "Starfish" "Turning Starfish"];
+        "Undefined", "Flying Straight", "Turning", "Straight Ruddering", ...
+        "Turning Ruddering", "Starfish", "Turning Starfish"];
 totalBehaviours = length(behaviours);
 
 % Then, we want to define a nxn array, where n represents the number of
@@ -35,7 +35,7 @@ transitionMatrix = zeros(totalBehaviours);
 
 % Init all of our timing info arrays with a dummy time of 0 seconds
 for behaviour = 1:totalBehaviours
-    behaviourTiming.("behaviour" + num2str(behaviour)) = 0;
+    behaviourTimes.("behaviour" + num2str(behaviour)) = 0;
 end
 
 % Init the first motif in the sequence
@@ -56,7 +56,7 @@ for experiment = 1:totalExperiments
             behaviourEndFrame = frame;
             % Determine, in seconds, how long the motif lasted for
             behaviourTime = (behaviourEndFrame - behaviourStartFrame) / frameRate;
-            behaviourTiming.("behaviour" + num2str(currentBehaviour))(end+1) = behaviourTime;
+            behaviourTimes.("behaviour" + num2str(currentBehaviour))(end+1) = behaviourTime;
             % Add change onto the transition matrix
             transitionMatrix(currentBehaviour, behaviour) = transitionMatrix(currentBehaviour, behaviour) + 1;
             % Update what the current motif is
@@ -68,7 +68,7 @@ for experiment = 1:totalExperiments
     % Do timing calculations for the last motif of the experiment
     behaviourEndFrame = behaviourData(end, 1);
     behaviourTime = (behaviourEndFrame - behaviourStartFrame) / frameRate;
-    behaviourTiming.("behaviour" + num2str(currentBehaviour))(end+1) = behaviourTime;
+    behaviourTimes.("behaviour" + num2str(currentBehaviour))(end+1) = behaviourTime;
 end
 
 % Normalise the transition matrix relative to the amount of transitions
@@ -81,25 +81,27 @@ end
 
 % Remove the dummy time from all motif time arrays
 for behaviour = 1:totalBehaviours
-    behaviourTiming.("behaviour" + num2str(behaviour)) = behaviourTiming.("behaviour" + num2str(behaviour))(2:end);
+    behaviourTimes.("behaviour" + num2str(behaviour)) = behaviourTimes.("behaviour" + num2str(behaviour))(2:end);
 end
 
-% Plot our brand new transition matrices onto some figures!
+% Plot the timing data onto some boxplots! :D
+% Start by inititalising our timing data and grouping information
+xData = behaviourTimes.behaviour1';
+groupData = ones(size(behaviourTimes.behaviour1'));
+% Then loop over all motifs and do the same (Note how we use a transposed
+% matrix to put it into a format that boxplot() doesn't complain about)
+for behaviour = 2:totalBehaviours
+    xData = [xData; behaviourTimes.("behaviour" + num2str(behaviour))']; %#ok<AGROW> Supressing as it's too annoying to fix rn >:(
+    groupData = [groupData; behaviour.*ones(size(behaviourTimes.("behaviour" + num2str(behaviour))'))]; %#ok<AGROW>
+end
+
 figure
-transition = heatmap(transitionMatrix);
-figure
-transitionNormalised = heatmap(transitionMatrixNormalised);
-figure;
-% Create a markov chain model
-mc = dtmc(transitionMatrixNormalised);
-graphplot(mc,ColorEdges=true);
-mc.StateNames = behaviours;
-graphplot(mc, 'ColorEdges', true);
-probabilityColours = [256 256 256
-                      078 080 199
-                      078 147 199
-                      076 163 060
-                      134 199 078
-                      224 076 076
-                      224 150 076];
-colormap(YlGn6)
+boxplot(xData, groupData);
+ylim([0 (max(xData) + 1)]);
+
+for i = 1:totalBehaviours
+    figure
+    edges = 0:0.2:5;
+    h = histogram(behaviourTimes.("behaviour" + num2str(i)),edges);
+end
+

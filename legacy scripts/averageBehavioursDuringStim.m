@@ -1,5 +1,6 @@
-% This script shows the average behaviour a hoverfly
-% displays for any given stimuli
+% This script shows (in 10 ms buckets) the average behaviour a hoverfly
+% displays for any given stimuli, this is a legacy version as the current
+% one used does not do any down sampling into buckets
 function averageBehavioursDuringStim()
     % Get user to select .csv containing VAME motif timeseries
     inputFolder = uigetdir('/mnt/f7f78664-d0bb-46b3-b287-f7b88456453e/savedData/', 'Select your folder containing motif usage .csv''s');
@@ -18,10 +19,19 @@ function averageBehavioursDuringStim()
                      "Ventral_Loom_HalfSlow", "Ventral_Loom_Slow", ...
                      "Dorsal_Loom_control"  , "Ventral_Loom_control"];
 
-    stimuliNames = strrep(stimuliSearch, '_', ' ');
+    stimuliNames = ["Dorsal Loom Fast"     , "Dorsal Loom HalfFast", ...
+                    "Dorsal Loom Halfslow" , "Dorsal Loom Slow", ...
+                    "Ventral Loom Fast"    , "Ventral Loom HalfFast", ...
+                    "Ventral Loom HalfSlow", "Ventral Loom Slow", ...
+                    "Dorsal Loom control"  , "Ventral Loom control"];
+
+    % Define camera frame rate (FPS) and analysis time bucket (ms)
+    frameRate = 100;
+    timeBucket = 100;
+    framesPerBucket = floor((timeBucket * 10^(-3)) / (1 / frameRate));
 
     % Define longest experiment length
-    experimentMax = 600; % Frames
+    experimentMax = 5; % Seconds
 
     % Get user defined community groupings 
     behaviours = [
@@ -33,11 +43,11 @@ function averageBehavioursDuringStim()
 
     fileType = '_behaviourAnalysis';
     csvIndex = find(cell2mat(regexp(csvList, fileType)));
-    csvList = csvList(csvIndex); %#ok<FNDSB>
+    csvList = csvList(csvIndex);%#ok<FNDSB>
 
     for stimulus = 1:length(stimuliNames)
         % Pre-calculate the rough size of the analysis file we need
-        behaviourAnalysis = zeros(experimentMax,length(behaviours));
+        behaviourAnalysis = zeros((experimentMax / (timeBucket * 10^(-3))),length(behaviours));
         % Get only the motif files relevant to our stimuli
         experimentTest = regexp(csvList, stimuliSearch(stimulus));
         for i = 1:length(experimentTest)
@@ -50,18 +60,20 @@ function averageBehavioursDuringStim()
         for file = 1:length(stimuliFiles)
             % Load the motif data
             behaviouralTimeSeries = readmatrix([inputFolder, '/', csvList{stimuliFiles(file)}]);
-            % Cull the first 50ms as it is pre-stim
-            behaviouralTimeSeries = behaviouralTimeSeries(6:end, :);
-            for frame = 1:size(behaviouralTimeSeries, 1)
-                % Loop over the whole video and fill the time series
-                currentBehaviour = behaviouralTimeSeries(frame, 2);
-                behaviourAnalysis(frame, currentBehaviour) = behaviourAnalysis(frame, currentBehaviour) + 1;
+            % Initialise the frame bucket system
+            bucket = 1;
+            bucketOffset = framesPerBucket * (bucket - 1);
+            while bucketOffset < ((floor(size(behaviouralTimeSeries, 1) / 10) * 10) - framesPerBucket) && bucket <= size(behaviourAnalysis, 1)
+                % This variable accounts for different bucket indexing
+                behaviourAnalysis = bucketFilling(framesPerBucket, behaviourAnalysis, behaviouralTimeSeries, bucket, bucketOffset);
+                bucket = bucket + 1;
+                bucketOffset = framesPerBucket * (bucket - 1);
             end
         end
         % Normalise our bar data into a percentage variable
-        for frame = 1:size(behaviourAnalysis, 1)
-            bucketSum = sum(behaviourAnalysis(frame, :));
-            behaviourAnalysis(frame, :) = behaviourAnalysis(frame, :) / bucketSum;
+        for bucketNo = 1:size(behaviourAnalysis, 1)
+            bucketSum = sum(behaviourAnalysis(bucketNo, :));
+            behaviourAnalysis(bucketNo, :) = behaviourAnalysis(bucketNo, :) / bucketSum;
         end
         behaviourAnalysis = rmmissing(behaviourAnalysis);
         % Plot our average behaviour data here!
@@ -72,3 +84,13 @@ function averageBehavioursDuringStim()
         legend(behaviours, 'Location', 'southwest')
     end
 end
+
+function behaviourAnalysis = bucketFilling(framesPerBucket, behaviourAnalysis, behaviouralTimeSeries, bucket, bucketOffset)
+    for frame = 1:framesPerBucket
+        currentBehaviour = behaviouralTimeSeries(bucketOffset + frame ,2);
+        behaviourAnalysis(bucket, currentBehaviour) = behaviourAnalysis(bucket, currentBehaviour) + 1;   
+    end
+end
+
+
+
