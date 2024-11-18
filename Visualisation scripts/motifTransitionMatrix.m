@@ -102,4 +102,4 @@ probabilityColours = [256 256 256
                       134 199 078
                       224 076 076
                       224 150 076];
-colormap(YlGn6)
+colormap(BuPu9)
