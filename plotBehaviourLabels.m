@@ -104,9 +104,11 @@ function generateBehaviourVid(behaviourAnalysis, behaviour, dlcClean, outputName
                 plot(dlcClean(frame, 55), yMax - dlcClean(frame, 56), 'g>', 'MarkerSize', 10)
                 plot(dlcClean(frame, 58), yMax - dlcClean(frame, 59), 'b>', 'MarkerSize', 10)
                 plot(dlcClean(frame, 61), yMax - dlcClean(frame, 62), 'r>', 'MarkerSize', 10)
+                plot(dlcClean(frame, 64), yMax - dlcClean(frame, 65), 'g|', 'MarkerSize', 10)
                 plot(dlcClean(frame, 67), yMax - dlcClean(frame, 68), 'g<', 'MarkerSize', 10)
                 plot(dlcClean(frame, 70), yMax - dlcClean(frame, 71), 'b<', 'MarkerSize', 10)
                 plot(dlcClean(frame, 73), yMax - dlcClean(frame, 74), 'r<', 'MarkerSize', 10)
+                plot(dlcClean(frame, 76), yMax - dlcClean(frame, 77), 'g|', 'MarkerSize', 10)
             end
             xlim([0 str2double(videoResolution{1})])
             ylim([0 str2double(videoResolution{2})])

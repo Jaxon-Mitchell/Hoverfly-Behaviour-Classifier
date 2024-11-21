@@ -61,7 +61,7 @@ switch keyword
         calculations = WBA;
     case 'hindlegVectors'
     % Need description here
-        hindVectors = zeros(size(dlcAnalysis, 1), 2, 4);
+        hindVectors = zeros(size(dlcAnalysis, 1), 2, 6);
         axisAngle = optArg;
         for frame = 1:size(dlcAnalysis, 1)
             % Pull out coordinates for leg labels
@@ -71,9 +71,11 @@ switch keyword
             % Put into terms of vectors
             rightKneeProximalVector = rightProximal - rightKnee;
             rightKneeDistalVector = rightDistal - rightKnee;
+            rightProximalDistalVector = rightDistal - rightProximal;
             % Calculate vector lengths
             rightProximalKneeLength = norm(rightKneeProximalVector);
             rightKneeDistalLength = norm(rightKneeDistalVector);
+            rightHingeDistalDeviation = rightDistal(1) - rightProximal(1);
             % Get useful angles
             rightKneeThoraxAngle = atand(rightKneeProximalVector(1) / rightKneeProximalVector(2));
             rightKneeThoraxAngle = rightKneeThoraxAngle - axisAngle(frame);
@@ -82,9 +84,11 @@ switch keyword
             rightInteriorkneeAngle = rad2deg(atan2(...
                rightKneeProximalVector(2)*rightKneeDistalVector(1) - rightKneeProximalVector(1)*rightKneeDistalVector(2), ...
                rightKneeProximalVector(1)*rightKneeDistalVector(1) + rightKneeProximalVector(2)*rightKneeDistalVector(2)));
+            rightHingeDistalAngle = atand(rightProximalDistalVector(1) / rightProximalDistalVector(2));
+            rightHingeDistalAngle = rightHingeDistalAngle - axisAngle(frame);
             % Save right leg info
-            hindVectors(frame, 1, :) = [rightProximalKneeLength, rightKneeDistalLength, ...
-                rightKneeThoraxAngle, rightInteriorkneeAngle];
+            hindVectors(frame, 1, :) = [rightProximalKneeLength, rightKneeDistalLength, rightKneeThoraxAngle, ...
+                rightInteriorkneeAngle, rightHingeDistalAngle, rightHingeDistalDeviation];
 
             % Do the same for the left leg
             leftProximal = [dlcAnalysis(frame, 67) dlcAnalysis(frame, 68)];
@@ -92,16 +96,20 @@ switch keyword
             leftDistal = [dlcAnalysis(frame, 73) dlcAnalysis(frame, 74)];
             leftProximalKneeVector = leftKnee - leftProximal;
             leftKneeDistalVector = leftDistal - leftKnee;
+            leftProximalDistalVector = leftDistal - leftProximal;
             leftProximalKneeLength = norm(leftProximalKneeVector);
             leftKneeDistalLength = norm(leftKneeDistalVector);
+            leftHingeDistalDeviation = leftDistal(1) - leftProximal(1);
             leftKneeThoraxAngle = atand(leftProximalKneeVector(1) / leftProximalKneeVector(2));
             leftKneeThoraxAngle = leftKneeThoraxAngle - axisAngle(frame);
             leftInteriorkneeAngle = rad2deg(atan2(...
                leftProximalKneeVector(2)*leftKneeDistalVector(1) - leftProximalKneeVector(1)*leftKneeDistalVector(2), ...
                leftProximalKneeVector(1)*leftKneeDistalVector(1) + leftProximalKneeVector(2)*leftKneeDistalVector(2)));
+            leftHingeDistalAngle = atand(leftProximalDistalVector(1) / leftProximalDistalVector(2));
+            leftHingeDistalAngle = leftHingeDistalAngle - axisAngle(frame);
             % Save left leg info
-            hindVectors(frame, 2, :) = [leftProximalKneeLength, leftKneeDistalLength, ...
-                leftKneeThoraxAngle, leftInteriorkneeAngle];
+            hindVectors(frame, 2, :) = [leftProximalKneeLength, leftKneeDistalLength, leftKneeThoraxAngle, ...
+                leftInteriorkneeAngle, leftHingeDistalAngle, leftHingeDistalDeviation];
         end
         calculations = hindVectors;
     case 'frontlegVectors'
