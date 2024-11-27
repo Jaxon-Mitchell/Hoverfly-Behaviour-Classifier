@@ -68,6 +68,7 @@ switch keyword
             rightProximal = [dlcAnalysis(frame, 55) dlcAnalysis(frame, 56)];
             rightKnee = [dlcAnalysis(frame, 58) dlcAnalysis(frame, 59)];
             rightDistal = [dlcAnalysis(frame, 61) dlcAnalysis(frame, 62)];
+            rightAbdomenSide = [dlcAnalysis(frame, 64) dlcAnalysis(frame, 65)];
             % Put into terms of vectors
             rightKneeProximalVector = rightProximal - rightKnee;
             rightKneeDistalVector = rightDistal - rightKnee;
@@ -75,7 +76,7 @@ switch keyword
             % Calculate vector lengths
             rightProximalKneeLength = norm(rightKneeProximalVector);
             rightKneeDistalLength = norm(rightKneeDistalVector);
-            rightHingeDistalDeviation = rightDistal(1) - rightProximal(1);
+            rightHingeDistalDeviation = rightDistal(1) - rightAbdomenSide(1);
             % Get useful angles
             rightKneeThoraxAngle = atand(rightKneeProximalVector(1) / rightKneeProximalVector(2));
             rightKneeThoraxAngle = rightKneeThoraxAngle - axisAngle(frame);
@@ -94,9 +95,10 @@ switch keyword
             leftProximal = [dlcAnalysis(frame, 67) dlcAnalysis(frame, 68)];
             leftKnee = [dlcAnalysis(frame, 70) dlcAnalysis(frame, 71)];
             leftDistal = [dlcAnalysis(frame, 73) dlcAnalysis(frame, 74)];
+            leftAbdomenSide = [dlcAnalysis(frame, 76) dlcAnalysis(frame, 77)];
             leftProximalKneeVector = leftKnee - leftProximal;
             leftKneeDistalVector = leftDistal - leftKnee;
-            leftProximalDistalVector = leftDistal - leftProximal;
+            leftProximalDistalVector = leftDistal - leftAbdomenSide;
             leftProximalKneeLength = norm(leftProximalKneeVector);
             leftKneeDistalLength = norm(leftKneeDistalVector);
             leftHingeDistalDeviation = leftDistal(1) - leftProximal(1);
@@ -157,9 +159,11 @@ end
 % - Hindlegs_Proximal_Right   : Column 55
 % - Hindlegs_Knee_Right       : Column 58
 % - Hindlegs_Distal_Right     : Column 61
+% - Hindlegs_Abdomen_Right    : Column 64
 % - Hindlegs_Proximal_Left    : Column 67
 % - Hindlegs_Knee_Left        : Column 70
 % - Hindlegs_Distal_Left      : Column 73
+% - Hindlegs_Abdomen_Left     : Column 76
 % Front legs starting points :
 % - Frontlegs_Hinge_Right     : Column 43
 % - Frontlegs_Distal_Right    : Column 46
