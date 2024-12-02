@@ -1,0 +1,132 @@
+% This script is used to fix a major issue with the DLC labelling for
+% distal hind leg points, as they constantly jump around the screen
+% irrespective of where the distal point actually is.
+
+% We fix this using 2 steps:
+% 1) Define an 'illegal border' where the labelled points cannot feasibly
+%    go to during regular flight, all points that enter this region are
+%    called 'illegal' frames.
+% 2) for all 'illegal' frames, interpolate between legal frames to create
+%    smooth transitions between what we should and should not be able to
+%    see.
+
+filePath = uigetdir('/mnt/f7f78664-d0bb-46b3-b287-f7b88456453e/savedData/', 'Select folder containing all DLC analysis');
+outputPath = uigetdir('/mnt/f7f78664-d0bb-46b3-b287-f7b88456453e/savedData/', 'Select folder to save your refined DLC analysis to');
+
+% Cancel if no file selected
+if any([behaviourPath == 0, outputPath == 0])
+   disp('User selected cancel');
+   return
+end
+
+% Double check video resolution as it's important for our angle
+% calculations
+vidRes = inputdlg({'Enter video width:', 'Enter video height:'}, ...
+    'Video Resolution', [1 45], {'320', '240'});
+
+% Search the folder for any csv's
+dlcFiles = dir([filePath '/*.csv']);
+dlcFiles = {dlcFiles.name};
+% Remove already existing behaviour analysis from the list
+existing = find(contains(behaviourFiles, ["_questionableBehaviour.csv", "_behaviourAnalysis.csv"]));
+for i = length(existing):-1:1
+    behaviourFiles(existing(i)) = [];
+end
+
+for file = 1:length(behaviourFiles)
+    % Load the .csv file as a cell array
+    dlcBehaviour = readcell([filePath '/' dlcFiles{file}]);    
+    % NOT DOING THIS AS WE NEED TO REPACKAGE IT INTO HOW DLC STRUCTURES ITS
+    % FILES, MAKE SURE EVERYTHING IS ADRESSED AS A CELL ARRAY
+    % Get the analysis into a format more easy for Matlab to handle
+    % behaviourClean = dlcBehaviour(4:end,2:end);
+    % behaviourClean = cell2mat(behaviourClean);
+    % Make a 2 column matrix representing illegal movements for left (1)
+    % and right (2) legs
+    isIllegal = zeros(size(dlcBehaviour, 1) - 3, 2);
+    % For every frame, determine which hind positions are illegal
+    for frame = 4:size(dlcBehaviour, 1)
+        % The y-position for the distal point cannot be greater than the
+        % y-position of the knee point.
+        if dlcBehaviour{frame, 75} > dlcBehaviour{frame, 72} % left leg
+            isIllegal(1, frame) = 1;
+        end
+        if dlcBehaviour{frame, 63} > dlcBehaviour{frame, 60} % right leg 
+            isIllegal(2, frame) = 1;
+        end
+        % The x-position of the distal point cannot cross past the
+        % x-position of the lower abdomen
+        if dlcBehaviour{frame, 74} > dlcBehaviour{frame, 17} % left leg
+            isIllegal(1, frame) = 1;
+        end
+        if dlcBehaviour{frame, 62} < dlcBehaviour{frame, 17} % right leg 
+            isIllegal(2, frame) = 1;
+        end
+    end
+    % Once done, go back and interpolate across legal position for illegal
+    % frames, start with the left leg
+    dlcBehaviour = interpolateOverPoints(dlcBehaviour, 74, 75, isIllegal);
+
+    % Save the behavioural analysis as a .csv file (not overriding the old one!)
+    fileName = strsplit(dlcFiles{analysis}, '.csv');
+    fileName = [fileName{1} '_refinedHind.csv'];
+    writematrix(behaviours, [outputPath '/' fileName])
+end
+% Define bounding box parameters
+
+% Once done with all frames, for each block of 'illegal' positions,
+% interpolate between the previous and next 'legal' position
+
+% Once done, save as csv with an alternative name where the user selects
+
+% End and thank the user
+
+function dlcFile = interpolateOverPoints(dlcFile, xPos, yPos, isIllegal)
+    % Frame starts at four as we need to ignore the first 3 rows of a DLC file
+    frame = 4;
+    % If the first frame is illegal, we can't fix things until we get a
+    % legal frame.
+    if isIllegal(1,1) == 1
+        while isIllegal(1, frame - 3) == 1
+            frame = frame + 1;
+        end
+    end
+    endFile = 0;
+    while frame <= size(dlcFile, 1) - 3
+        if isIllegal(1, frame - 3) == 1
+            blockStart = frame - 1;
+            while isIllegal(1, frame - 3) == 1
+                frame = frame + 1;
+                % If the block reaches the end of the file, stop (Jaxon to double check this)
+                if frame == size(behaviourClean, 1) - 3
+                    endFile = 1;
+                    break
+                end
+            end
+            % Break out of the main for loop if at end of file
+            if endFile == 1
+                break
+            end
+            blockEnd = frame;
+            framesToInterpolate = blockEnd - blockStart - 1;
+            % Get x and y coordinates (respectively) of the starting
+            % position
+            x1 = dlcFile{blockStart, 74};
+            y1 = dlcFile{blockStart, 75};
+            % Do the same for the end position
+            x2 = dlcFile{blockEnd, 74};
+            y2 = dlcFile{blockEnd, 75};
+            xDiff = x2 - x1;
+            yDiff = y2 - y1;
+            for illegalFrame = 1:framesToInterpolate
+                % Start with x-coord
+                dlcFile{blockStart + illegalFrame, 74} = dlcFile{blockStart, 74} + ((xDiff / (framesToInterpolate + 1)) * illegalFrame);
+                % Then do y-coord
+                dlcFile{blockStart + illegalFrame, 75} = dlcFile{blockStart, 75} + ((yDiff / (framesToInterpolate + 1)) * illegalFrame);
+            end
+        end
+        frame = frame + 1;
+    end
+end
+
+

@@ -101,7 +101,7 @@ switch keyword
             leftProximalDistalVector = leftDistal - leftAbdomenSide;
             leftProximalKneeLength = norm(leftProximalKneeVector);
             leftKneeDistalLength = norm(leftKneeDistalVector);
-            leftHingeDistalDeviation = leftDistal(1) - leftProximal(1);
+            leftHingeDistalDeviation = leftDistal(1) - leftAbdomenSide(1);
             leftKneeThoraxAngle = atand(leftProximalKneeVector(1) / leftProximalKneeVector(2));
             leftKneeThoraxAngle = leftKneeThoraxAngle - axisAngle(frame);
             leftInteriorkneeAngle = rad2deg(atan2(...

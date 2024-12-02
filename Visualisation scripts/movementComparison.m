@@ -161,20 +161,6 @@ if TF(7) == 1
     figure
     tiledlayout("horizontal")
     nexttile
-    histogram(controlCalcs.distalDeviationDiff, deviationEdges, 'Normalization', 'percentage');
-    hold on
-    histogram(behaviourCalcs.distalDeviationDiff, deviationEdges, 'Normalization', 'percentage');
-    if optionalFile ~= 0
-        histogram(optionalCalcs.distalDeviationDiff, deviationEdges, 'Normalization', 'percentage');
-        legend(controlFile, behaviourFile, optionalFile)
-    else
-        legend(controlFile, behaviourFile)
-    end
-    title("Difference between hind leg deviation for both hind legs (Directional)")
-    xlabel("Vector Length (Pixels)")
-    ylabel("Percentage (%)")
-    hold off
-    nexttile
     histogram(abs(controlCalcs.distalDeviationDiff), deviationEdgesAbs, 'Normalization', 'percentage');
     hold on
     histogram(abs(behaviourCalcs.distalDeviationDiff), deviationEdgesAbs, 'Normalization', 'percentage');
@@ -185,6 +171,20 @@ if TF(7) == 1
         legend(controlFile, behaviourFile)
     end
     title("Difference between hind leg deviation for both hind legs (Absolute)")
+    xlabel("Vector Length (Pixels)")
+    ylabel("Percentage (%)")
+    hold off
+    nexttile
+    histogram(abs(controlCalcs.distalDeviationRollingAv), deviationEdgesAbs, 'Normalization', 'percentage');
+    hold on
+    histogram(abs(behaviourCalcs.distalDeviationRollingAv), deviationEdgesAbs, 'Normalization', 'percentage');
+    if optionalFile ~= 0
+        histogram(abs(optionalCalcs.distalDeviationRollingAv), deviationEdgesAbs, 'Normalization', 'percentage');
+        legend(controlFile, behaviourFile, optionalFile)
+    else
+        legend(controlFile, behaviourFile)
+    end
+    title("Difference between hind leg deviation for both hind legs (Rolling average w=3)")
     xlabel("Vector Length (Pixels)")
     ylabel("Percentage (%)")
     hold off
@@ -231,6 +231,13 @@ function outputData = getAnalysisData(dlcClean, vidRes)
     % Uncomment this to plot difference between x-axis deviation from
     % distal hind to proximal hind 
     outputData.distalDeviationDiff = hindCalcs(:, 1, 6) + hindCalcs(:, 2, 6);
+    distalDeviationRollingAv = ones(length(outputData.distalDeviationDiff), 1);
+    for frame = 2:length(outputData.distalDeviationDiff) - 1
+        distalDeviationRollingAv(frame) = (outputData.distalDeviationDiff(frame - 1) + outputData.distalDeviationDiff(frame) + outputData.distalDeviationDiff(frame + 1)) / 3;
+    end
+    distalDeviationRollingAv(1) = distalDeviationRollingAv(2);
+    distalDeviationRollingAv(end) = distalDeviationRollingAv(end - 1);
+    outputData.distalDeviationRollingAv = distalDeviationRollingAv;
     % % Uncomment this to plot whole hind angle difference
     % outputData.angleDeviationRight = hindCalcs(:, 1, 5);
     % outputData.angleDeviationLeft  = hindCalcs(:, 2, 5);
